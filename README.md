@@ -38,7 +38,7 @@ Find the Maximum Subarray under the constraint of sum(arr[i...j]) <= max.
 ├── MaxCandy.hpp (OpenMP Helper functions and other Declarations)
 ├── MaxCandy.cpp
 ├── Makefile
-├── test (Files used for testing)
+├── test/*.txt (Files used for testing)
 ├── test_script.sh (Script Used for Testing, 'bash test_script.sh')
 ├── input.txt (Test File as described)
 ```
