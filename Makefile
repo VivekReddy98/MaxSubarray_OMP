@@ -1,8 +1,8 @@
 serial:
-	g++ Halloween.cpp -o Halloween.out
+	g++ -g Halloween.cpp -o Halloween.out
 
 paralell:
-	g++ Halloween.cpp -fopenmp -DPRL -o Halloween.out
+	g++ Halloween.cpp -fopenmp -o Halloween.out
 
 clean:
 	rm *.out
