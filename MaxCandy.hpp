@@ -43,8 +43,7 @@ void print(const Result& ); // Print output
 void prefix_sum(std::vector<uint>&, const Environ&);
 // OMP Helper Function to perform a binary search in Paralell
 Result binary_search_omp(std::vector<uint>&, const Environ&);
-
-inline void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Environ& env);
+void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Environ& env);
 
 
 // ----------------------------------  Helper Function Definitions ----------------------------------------
@@ -136,10 +135,9 @@ Result binary_search_omp(std::vector<uint>& prefix_sums, const Environ& env){
         if (result.num_candies < thread_priv.num_candies ||
            (result.num_candies == thread_priv.num_candies
               && result.left > thread_priv.left && result.left != -1)){
-            // Critical Section and hence require synchronization
             #pragma omp critical
             {
-                result = thread_priv;
+                result = thread_priv;  // Critical Section and hence require synchronization
             }
         }
     }
@@ -148,7 +146,7 @@ Result binary_search_omp(std::vector<uint>& prefix_sums, const Environ& env){
 
 // Standard Binary Search.
 // Right Index is fixed, Target is to search for the left most index for which the sum[left...right] <= max limit
-inline void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Environ& env) {
+void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Environ& env) {
     int temp_left = ans.left;
     int temp_right = ans.right;
     int optim_left = -1, optim_val = 0;
