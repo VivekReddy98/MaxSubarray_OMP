@@ -87,31 +87,6 @@ void print(const Result& result){
 
 #ifdef _OPENMP
 
-void prefix_sum(std::vector<uint>& temp, const Environ& env){
-    for (size_t i = 1; i < env.num_homes; i++){
-        temp[i] = temp[i-1] + env.pieces[i];
-    }
-    /*
-    Simple Prefix Scan in Paralell in O((num_homes/NumThreads)*log(num_homes)) complexity
-    O(num_homes) space complexity -- This Version isn't efficient, so scrapped
-        size_t numthreads = OMP_NUM_THREADS;
-        std::vector<uint> read_only(env.num_homes, 0);
-
-        for (size_t stride = 1; stride <= env.num_homes; stride*=2) {
-            // Maintain a Temp Array to remove intra-array dependency
-            #pragma omp parallel for shared(env, stride, temp) num_threads(numthreads)
-            for (size_t i = 0; i < env.num_homes; i++){
-                read_only[i] = temp[i];
-            }
-
-            #pragma omp parallel for shared(env, stride, temp) num_threads(numthreads)
-            for (size_t i = stride; i < env.num_homes; i++) {
-                temp[i] += read_only[i-stride];
-            }
-        }
-    */
-}
-
 /*
 Run a binary search on every element (in paralell) to find a potetial subarray ending with that element
 */
@@ -119,7 +94,7 @@ Result binary_search_omp(std::vector<uint>& prefix_sums, const Environ& env){
     struct Result result;
     size_t numthreads = OMP_NUM_THREADS;
 
-    #pragma omp parallel for num_threads(numthreads)
+    #pragma omp parallel for shared(result) num_threads(numthreads)
     for (size_t i = 0; i < env.num_homes; i++){
         struct Result thread_priv{0, (int)i, prefix_sums[i]};
 
@@ -131,13 +106,15 @@ Result binary_search_omp(std::vector<uint>& prefix_sums, const Environ& env){
         else if (prefix_sums[i] > env.max_cnds){
             search_helper(prefix_sums, thread_priv, env);
         }
+
         // Update the Global Result
+        // Critical Section and hence require synchronization
+        #pragma omp critical
+        {
         if (result.num_candies < thread_priv.num_candies ||
            (result.num_candies == thread_priv.num_candies
-              && result.left > thread_priv.left && result.left != -1)){
-            #pragma omp critical
-            {
-                result = thread_priv;  // Critical Section and hence require synchronization
+              && result.left > thread_priv.left)){
+                result = thread_priv;
             }
         }
     }
@@ -152,7 +129,7 @@ void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Envi
     int optim_left = -1, optim_val = 0;
     while(temp_left <= temp_right){
         int mid = temp_left + (temp_right - temp_left)/2;
-        uint sum_for_this_subarray = ans.num_candies;
+        uint sum_for_this_subarray = prefix_sums[ans.right];
         if (mid > 0)  sum_for_this_subarray -= prefix_sums[mid-1];
         if (sum_for_this_subarray > env.max_cnds){
             temp_left = mid + 1;
@@ -170,5 +147,25 @@ void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Envi
     }
     ans.left = optim_left;
     ans.num_candies = optim_val;
+}
+
+/* Simple Prefix Scan in Paralell in O((num_homes/NumThreads)*log(num_homes)) complexity
+    O(num_homes) space complexity */
+void prefix_sum(std::vector<uint>& temp, const Environ& env){
+    size_t numthreads = OMP_NUM_THREADS;
+    std::vector<uint> read_only(env.num_homes, 0);
+
+    for (size_t stride = 1; stride <= env.num_homes; stride*=2) {
+        // Maintain a Temp Array to remove intra-array dependency
+        #pragma omp parallel for shared(env, stride, temp) num_threads(numthreads)
+        for (size_t i = 0; i < env.num_homes; i++){
+            read_only[i] = temp[i];
+        }
+
+        #pragma omp parallel for shared(env, stride, temp) num_threads(numthreads)
+        for (size_t i = stride; i < env.num_homes; i++) {
+            temp[i] += read_only[i-stride];
+        }
+    }
 }
 #endif
