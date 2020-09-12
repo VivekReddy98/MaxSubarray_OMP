@@ -1,5 +1,5 @@
-serial:
-	g++ -g Halloween.cpp -o Halloween.out
+all:
+	g++ Halloween.cpp -o Halloween.out
 
 paralell:
 	g++ Halloween.cpp -fopenmp -o Halloween.out
