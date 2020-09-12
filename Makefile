@@ -1,8 +1,8 @@
 all:
-	g++ Halloween.cpp -o Halloween.out
+	g++ MaxCandy.cpp -o MaxCandy.out
 
 paralell:
-	g++ -g Halloween.cpp -fopenmp -o Halloween.out
+	g++ MaxCandy.cpp -fopenmp -o MaxCandy.out
 
 clean:
 	rm *.out

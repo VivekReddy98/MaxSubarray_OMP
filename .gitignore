@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Large Test File
+test/perf.txt
+test/perf2.txt
+test/perf3.txt
+test/randomnumber.bash
