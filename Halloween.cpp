@@ -212,12 +212,10 @@ void search_helper(const std::vector<uint>& prefix_sums, Result& ans, const Envi
         uint sum_for_this_subarray = prefix_sums[ans.right];
         if (mid > 0)  sum_for_this_subarray -= prefix_sums[mid-1];
         if (sum_for_this_subarray > env.max_cnds){
-            if (temp_left == mid) break;
-            temp_left = mid;
+            temp_left = mid + 1;
         }
         else if (sum_for_this_subarray < env.max_cnds){
-            if (temp_right == mid) break;
-            temp_right = mid;
+            temp_right = mid - 1;
             optim_val = sum_for_this_subarray;
             optim_left = mid;
         }
